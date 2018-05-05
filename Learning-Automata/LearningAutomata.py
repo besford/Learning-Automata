@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 
 from abc import ABCMeta, abstractmethod
 
@@ -70,3 +71,24 @@ class TsetlinAutomata(LearningAutomata):
     
     def is_boundary_state(self, state):
         return state % (self.memory / self.actions.size) == 0
+
+class KrinskyAutomata(TsetlinAutomata):
+    def __init__(self, num_states, num_actions, penalties):
+        TsetlinAutomata.__init__(self, num_states, num_actions, penalties)
+    
+    def update_on_reward(self):
+        while not self.is_optimal_state(self.current_state):
+            self.decrement_current_state()
+
+class KrylovAutomata(TsetlinAutomata):
+    def __init__(self, num_states, num_actions, penalties):
+        TsetlinAutomata.__init__(self, num_states, num_actions, penalties)
+
+    def next_state(self, penalty):
+        if penalty:
+            if sp.random.uniform(0, 1) >= 0.5:
+                self.update_on_penalty()
+            else:
+                self.update_on_reward()
+        elif not penalty:
+            self.update_on_reward()
